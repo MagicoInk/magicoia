@@ -1,0 +1,118 @@
+@import "tailwindcss";
+
+/* Alineado con `paginafinal` (MÁGICO INK): negro, blanco, amarillo #FFED4E */
+:root {
+  --magico-black: #000000;
+  --magico-white: #ffffff;
+  --magico-yellow: #ffed4e;
+  --magico-gray-400: #9ca3af;
+  --magico-gray-700: #374151;
+  --magico-border: rgba(255, 255, 255, 0.1);
+  --font-size: 16px;
+  --font-heading: "Cormorant Garamond", serif;
+}
+
+@theme inline {
+  --color-background: var(--magico-black);
+  --color-foreground: var(--magico-white);
+}
+
+html {
+  font-size: var(--font-size);
+  background-color: #000;
+}
+
+body {
+  color: var(--magico-white);
+  min-height: 100vh;
+  position: relative;
+  background: #000;
+}
+
+/* Textura sutil (misma base64 estilo paginafinal hero) */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.35;
+  z-index: 0;
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9Ii43NSIgc3RpdGNoVGlsZXM9InN0aXRjaCIgdHlwZT0iZnJhY3RhbE5vaXNlIi8+PGZlQ29sb3JNYXRyaXggdHlwZT0ic2F0dXJhdGUiIHZhbHVlcz0iMCIvPjwvZmlsdGVyPjxwYXRoIGQ9Ik0wIDBoMzAwdjMwMEgweiIgZmlsdGVyPSJ1cmwoI2EpIiBvcGFjaXR5PSIuMDUiLz48L3N2Zz4=");
+  mix-blend-mode: soft-light;
+}
+
+::selection {
+  background: var(--magico-yellow);
+  color: #000;
+}
+
+.magico-wrap {
+  position: relative;
+  z-index: 1;
+}
+
+@layer components {
+  .magico-container {
+    @apply mx-auto w-full max-w-3xl px-4 sm:px-6;
+  }
+  .magico-nav-inner {
+    @apply mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8;
+  }
+  .magico-card {
+    @apply border-2 border-white/90 bg-black/40 backdrop-blur-sm;
+  }
+  .magico-input {
+    @apply w-full border-2 border-white/30 bg-black px-4 py-2.5 text-sm text-white placeholder:text-gray-500;
+  }
+  .magico-input:focus {
+    outline: none;
+    border-color: var(--magico-yellow);
+  }
+  .magico-btn-primary {
+    @apply w-full border-2 border-white bg-white px-6 py-3 text-sm font-bold uppercase tracking-wider text-black transition-colors;
+  }
+  .magico-btn-primary:hover:not(:disabled) {
+    @apply bg-gray-200;
+  }
+  .magico-btn-primary:disabled {
+    @apply cursor-not-allowed opacity-50;
+  }
+  .magico-btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 border-2 border-white/40 bg-transparent px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-white transition-colors;
+  }
+  .magico-btn-ghost:hover {
+    @apply border-white bg-white text-black;
+  }
+  .magico-label-cdmx {
+    @apply inline-block border-2 border-[#FFED4E] bg-black px-4 py-1.5;
+  }
+  .magico-section-title {
+    @apply text-2xl font-black uppercase tracking-tighter text-white sm:text-3xl;
+  }
+  .magico-line-yellow {
+    height: 3px;
+    width: 5rem;
+    background-color: var(--magico-yellow);
+  }
+  .magico-loading-bar {
+    background: linear-gradient(
+      90deg,
+      #000 0%,
+      var(--magico-yellow) 40%,
+      #fff 50%,
+      var(--magico-yellow) 60%,
+      #000 100%
+    );
+    background-size: 200% 100%;
+    animation: magico-shine 1s ease infinite;
+  }
+}
+
+@keyframes magico-shine {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
