@@ -2,14 +2,14 @@
 
 Aplicación web para sugerir respuestas de venta (Instagram, WhatsApp) a partir de conversaciones reales con venta y vendedores referencia.
 
-- **Inicio** (`/`): pegar el chat o subir captura; RAG con **Firestore** (Firebase) y sugerencias con OpenAI.
+- **Inicio** (`/`): pegar el chat o subir captura; RAG con **Firestore** (Firebase) y sugerencias con **Google Gemini** (API de [AI Studio](https://aistudio.google.com)).
 - **Entrenar** (`/admin`): con `ADMIN_SECRET` subes conversaciones; se trocean, se generan embeddings y se guardan en **Cloud Firestore**.
 
 ## Requisitos
 
 - Node 20+
 - Proyecto [Firebase](https://console.firebase.google.com) con **Cloud Firestore** activado.
-- Cuenta de [OpenAI](https://platform.openai.com) (modelos: `text-embedding-3-small`, `gpt-4o-mini`).
+- [Google AI Studio](https://aistudio.google.com/apikey) para `GEMINI_API_KEY` (embeddings `text-embedding-004`, chat/visión `gemini-1.5-flash` por defecto; configurables con `GEMINI_EMBED_MODEL` / `GEMINI_MODEL`).
 
 ## Configurar Firebase (Firestore)
 
@@ -32,7 +32,7 @@ Solo el **servidor** (rutas `app/api/*`) llama a Firebase; no hace falta clave p
 ```bash
 cd "ia magico"
 cp .env.example .env
-# Edita .env: OPENAI_API_KEY, ADMIN_SECRET, y Firebase
+# Edita .env: GEMINI_API_KEY, ADMIN_SECRET, y Firebase
 npm install
 npm run dev
 ```
@@ -42,7 +42,7 @@ Crea al menos un documento de entrenamiento en **Entrenar**; luego prueba en **I
 ## Despliegue
 
 - Cualquier host con **Node** (tu hosting, Vercel, etc.): `npm run build` y `npm start` (o el comando que use la plataforma).
-- En el panel del host, configura `OPENAI_API_KEY`, `ADMIN_SECRET` y `FIREBASE_SERVICE_ACCOUNT_JSON` (o `GOOGLE_APPLICATION_CREDENTIALS` apuntando a un secreto montado como archivo).
+- En el panel del host, configura `GEMINI_API_KEY`, `ADMIN_SECRET` y `FIREBASE_SERVICE_ACCOUNT_JSON` (o `GOOGLE_APPLICATION_CREDENTIALS` apuntando a un secreto montado como archivo).
 
 **Índice en Firestore:** al listar entradas con `orderBy("createdAt")`, Firestore puede pedir crear un índice; el enlace sale en el error de la consola o en el log de build/runtime.
 

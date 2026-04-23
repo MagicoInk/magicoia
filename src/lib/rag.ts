@@ -1,4 +1,4 @@
-import { embedText } from "./openai";
+import { embedText } from "./gemini";
 import { cosine, parseEmbeddingField } from "./vectors";
 import { getDb } from "./firebaseAdmin";
 

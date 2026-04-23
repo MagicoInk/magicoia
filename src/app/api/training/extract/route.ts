@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { extractManyTrainingImages, hasLlmApiKey } from "@/lib/openai";
+import { extractManyTrainingImages, hasGeminiApiKey } from "@/lib/gemini";
 
 export const maxDuration = 300;
 
@@ -20,9 +20,9 @@ function assertAdmin(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  if (!hasLlmApiKey()) {
+  if (!hasGeminiApiKey()) {
     return NextResponse.json(
-      { error: "Falta GEMINI_API_KEY (gratis) u OPENAI_API_KEY" },
+      { error: "Falta GEMINI_API_KEY (Google AI Studio)." },
       { status: 500 }
     );
   }

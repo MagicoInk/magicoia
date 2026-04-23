@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { extractTextFromImageBase64, hasLlmApiKey, suggestReplies } from "@/lib/openai";
+import { extractTextFromImageBase64, hasGeminiApiKey, suggestReplies } from "@/lib/gemini";
 import { retrieveSimilar, countEntries } from "@/lib/rag";
 import { authOptions } from "@/lib/authOptions";
 import { getArtistById, saveChatLog } from "@/lib/artistsStore";
@@ -17,9 +17,9 @@ export async function POST(request: NextRequest) {
       { status: 401 }
     );
   }
-  if (!hasLlmApiKey()) {
+  if (!hasGeminiApiKey()) {
     return NextResponse.json(
-      { error: "Falta GEMINI_API_KEY (gratis) u OPENAI_API_KEY en el servidor." },
+      { error: "Falta GEMINI_API_KEY en el servidor (Google AI Studio)." },
       { status: 500 }
     );
   }

@@ -1,54 +1,30 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import OpenAI from "openai";
 
-/** Prioridad: Gemini (gratis en AI Studio) → OpenAI. */
-type LlmProvider = "gemini" | "openai";
-
-let openaiClient: OpenAI | null = null;
 let googleAI: GoogleGenerativeAI | null = null;
-
-export function getLlmProvider(): LlmProvider {
-  if (process.env.GEMINI_API_KEY) return "gemini";
-  if (process.env.OPENAI_API_KEY) return "openai";
-  throw new Error(
-    "Falta GEMINI_API_KEY (gratis: https://aistudio.google.com/apikey) u OPENAI_API_KEY."
-  );
-}
-
-export function hasLlmApiKey(): boolean {
-  return Boolean(process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY);
-}
-
-function getOpenAIClient(): OpenAI {
-  const key = process.env.OPENAI_API_KEY;
-  if (!key) throw new Error("OPENAI_API_KEY no configurada.");
-  if (!openaiClient) openaiClient = new OpenAI({ apiKey: key });
-  return openaiClient;
-}
 
 function getGoogleAI(): GoogleGenerativeAI {
   const key = process.env.GEMINI_API_KEY;
-  if (!key) throw new Error("GEMINI_API_KEY no configurada.");
+  if (!key) {
+    throw new Error(
+      "Falta GEMINI_API_KEY. Clave gratis: https://aistudio.google.com/apikey"
+    );
+  }
   if (!googleAI) googleAI = new GoogleGenerativeAI(key);
   return googleAI;
 }
 
-const GEMINI_CHAT_MODEL = process.env.GEMINI_MODEL ?? "gemini-1.5-flash";
-const GEMINI_EMBED_MODEL = process.env.GEMINI_EMBED_MODEL ?? "text-embedding-004";
+export function hasGeminiApiKey(): boolean {
+  return Boolean(process.env.GEMINI_API_KEY);
+}
+
+const CHAT_MODEL = process.env.GEMINI_MODEL ?? "gemini-1.5-flash";
+const EMBED_MODEL = process.env.GEMINI_EMBED_MODEL ?? "text-embedding-004";
 
 export async function embedText(text: string): Promise<number[]> {
   const t = text.replace(/\s+/g, " ").trim().slice(0, 8000);
-  if (getLlmProvider() === "gemini") {
-    const m = getGoogleAI().getGenerativeModel({ model: GEMINI_EMBED_MODEL });
-    const res = await m.embedContent(t);
-    return res.embedding.values;
-  }
-  const openai = getOpenAIClient();
-  const res = await openai.embeddings.create({
-    model: "text-embedding-3-small",
-    input: t,
-  });
-  return res.data[0]!.embedding;
+  const m = getGoogleAI().getGenerativeModel({ model: EMBED_MODEL });
+  const res = await m.embedContent(t);
+  return res.embedding.values;
 }
 
 const ILEGIBLE = "[ilegible]";
@@ -77,74 +53,30 @@ export async function extractTextFromImageBase64(
   base64: string,
   mime: string
 ): Promise<string> {
-  if (getLlmProvider() === "gemini") {
-    const m = getGoogleAI().getGenerativeModel({
-      model: GEMINI_CHAT_MODEL,
-      systemInstruction: SYSTEM_SUGGEST_SCREENSHOT,
-    });
-    const r = await m.generateContent([
-      { text: "Transcribe esta conversación (cliente a la izquierda, vendedor a la derecha cuando aplique)." },
-      { inlineData: { mimeType: mime, data: base64 } },
-    ]);
-    return (r.response.text() ?? "").trim();
-  }
-  const openai = getOpenAIClient();
-  const dataUrl = `data:${mime};base64,${base64}`;
-  const res = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    max_tokens: 2000,
-    messages: [
-      { role: "system", content: SYSTEM_SUGGEST_SCREENSHOT },
-      {
-        role: "user",
-        content: [
-          {
-            type: "text",
-            text: "Transcribe esta conversación (cliente a la izquierda, vendedor a la derecha cuando aplique).",
-          },
-          { type: "image_url", image_url: { url: dataUrl } },
-        ],
-      },
-    ],
+  const m = getGoogleAI().getGenerativeModel({
+    model: CHAT_MODEL,
+    systemInstruction: SYSTEM_SUGGEST_SCREENSHOT,
   });
-  return res.choices[0]?.message?.content?.trim() ?? "";
+  const r = await m.generateContent([
+    { text: "Transcribe esta conversación (cliente a la izquierda, vendedor a la derecha cuando aplique)." },
+    { inlineData: { mimeType: mime, data: base64 } },
+  ]);
+  return (r.response.text() ?? "").trim();
 }
 
 export async function extractTrainingTextFromImageBase64(
   base64: string,
   mime: string
 ): Promise<string> {
-  if (getLlmProvider() === "gemini") {
-    const m = getGoogleAI().getGenerativeModel({
-      model: GEMINI_CHAT_MODEL,
-      systemInstruction: SYSTEM_TRAINING_IMAGES,
-    });
-    const r = await m.generateContent([
-      { text: "Extrae el chat de esta captura (izquierda = cliente, derecha = vendedor)." },
-      { inlineData: { mimeType: mime, data: base64 } },
-    ]);
-    return (r.response.text() ?? "").trim();
-  }
-  const openai = getOpenAIClient();
-  const dataUrl = `data:${mime};base64,${base64}`;
-  const res = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    max_tokens: 4000,
-    messages: [
-      { role: "system", content: SYSTEM_TRAINING_IMAGES },
-      {
-        role: "user",
-        content: [
-          {
-            type: "text",
-            text: "Extrae el chat de esta captura (izquierda = cliente, derecha = vendedor).",
-          },
-          { type: "image_url", image_url: { url: dataUrl } },
-        ],
-      },
-    ],
+  const m = getGoogleAI().getGenerativeModel({
+    model: CHAT_MODEL,
+    systemInstruction: SYSTEM_TRAINING_IMAGES,
   });
-  return res.choices[0]?.message?.content?.trim() ?? "";
+  const r = await m.generateContent([
+    { text: "Extrae el chat de esta captura (izquierda = cliente, derecha = vendedor)." },
+    { inlineData: { mimeType: mime, data: base64 } },
+  ]);
+  return (r.response.text() ?? "").trim();
 }
 
 export async function extractManyTrainingImages(
@@ -194,32 +126,17 @@ ${artistBlock}CONVERSACIÓN ACTUAL (el artista pide qué contestar ahora):
 
 ${currentConversation}`;
 
-  let raw: string;
-  if (getLlmProvider() === "gemini") {
-    const m = getGoogleAI().getGenerativeModel({
-      model: GEMINI_CHAT_MODEL,
-      systemInstruction: SUGGEST_SYSTEM,
-      generationConfig: {
-        maxOutputTokens: 2000,
-        responseMimeType: "application/json",
-        temperature: 0.4,
-      },
-    });
-    const r = await m.generateContent(userText);
-    raw = (r.response.text() ?? "").trim() || "{}";
-  } else {
-    const openai = getOpenAIClient();
-    const res = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      max_tokens: 2000,
-      response_format: { type: "json_object" },
-      messages: [
-        { role: "system", content: SUGGEST_SYSTEM },
-        { role: "user", content: userText },
-      ],
-    });
-    raw = res.choices[0]?.message?.content?.trim() ?? "{}";
-  }
+  const m = getGoogleAI().getGenerativeModel({
+    model: CHAT_MODEL,
+    systemInstruction: SUGGEST_SYSTEM,
+    generationConfig: {
+      maxOutputTokens: 2000,
+      responseMimeType: "application/json",
+      temperature: 0.4,
+    },
+  });
+  const r = await m.generateContent(userText);
+  const raw = (r.response.text() ?? "").trim() || "{}";
 
   try {
     const parsed = JSON.parse(raw) as {
