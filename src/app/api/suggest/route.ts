@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { extractTextFromImageBase64, suggestReplies } from "@/lib/openai";
+import { extractTextFromImageBase64, hasLlmApiKey, suggestReplies } from "@/lib/openai";
 import { retrieveSimilar, countEntries } from "@/lib/rag";
 import { authOptions } from "@/lib/authOptions";
 import { getArtistById, saveChatLog } from "@/lib/artistsStore";
@@ -17,9 +17,9 @@ export async function POST(request: NextRequest) {
       { status: 401 }
     );
   }
-  if (!process.env.OPENAI_API_KEY) {
+  if (!hasLlmApiKey()) {
     return NextResponse.json(
-      { error: "Falta OPENAI_API_KEY en .env" },
+      { error: "Falta GEMINI_API_KEY (gratis) u OPENAI_API_KEY en el servidor." },
       { status: 500 }
     );
   }

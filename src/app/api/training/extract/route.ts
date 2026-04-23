@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { extractManyTrainingImages } from "@/lib/openai";
+import { extractManyTrainingImages, hasLlmApiKey } from "@/lib/openai";
 
 export const maxDuration = 300;
 
@@ -20,8 +20,11 @@ function assertAdmin(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  if (!process.env.OPENAI_API_KEY) {
-    return NextResponse.json({ error: "Falta OPENAI_API_KEY" }, { status: 500 });
+  if (!hasLlmApiKey()) {
+    return NextResponse.json(
+      { error: "Falta GEMINI_API_KEY (gratis) u OPENAI_API_KEY" },
+      { status: 500 }
+    );
   }
   const auth = assertAdmin(request);
   if (!auth.ok) return auth.response;

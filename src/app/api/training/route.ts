@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
-import { embedText, extractManyTrainingImages } from "@/lib/openai";
+import { embedText, extractManyTrainingImages, hasLlmApiKey } from "@/lib/openai";
 import { chunkText } from "@/lib/chunkText";
 import { getDb } from "@/lib/firebaseAdmin";
 import { COL_CHUNKS, COL_ENTRIES } from "@/lib/rag";
@@ -50,8 +50,14 @@ async function imagesToExtractedText(form: FormData): Promise<{ ok: true; text: 
       ),
     };
   }
-  if (!process.env.OPENAI_API_KEY) {
-    return { ok: false, response: NextResponse.json({ error: "Falta OPENAI_API_KEY" }, { status: 500 }) };
+  if (!hasLlmApiKey()) {
+    return {
+      ok: false,
+      response: NextResponse.json(
+        { error: "Falta GEMINI_API_KEY (gratis) u OPENAI_API_KEY" },
+        { status: 500 }
+      ),
+    };
   }
   const toRead: { base64: string; mime: string }[] = [];
   for (const f of list) {
@@ -79,6 +85,12 @@ export const maxDuration = 300;
 export async function POST(request: NextRequest) {
   const auth = assertAdmin(request);
   if (!auth.ok) return auth.response;
+  if (!hasLlmApiKey()) {
+    return NextResponse.json(
+      { error: "Falta GEMINI_API_KEY (gratis) u OPENAI_API_KEY" },
+      { status: 500 }
+    );
+  }
 
   const ct = request.headers.get("content-type") || "";
   let title: string | null;
